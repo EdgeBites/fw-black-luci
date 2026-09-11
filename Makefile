@@ -4,17 +4,11 @@ PKG_NAME:=fwblack
 PKG_VERSION:=1.0.0
 PKG_RELEASE:=1
 
-PKG_MAINTAINER:=TODO Your Name <you@example.com>
+PKG_MAINTAINER:=EdgeBites.com <info@edgebites.com>
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE
 
 PKGARCH:=all
-
-# TODO(maintainer): add your real identity before submitting, e.g.
-# PKG_MAINTAINER:=Your Name <you@example.com>
-# TODO(maintainer): add the upstream repo URL, e.g.
-# URL:=https://github.com/<user>/fwblack-openwrt (as "URL:=" inside each
-# "define Package/<name>" block below)
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -32,6 +26,7 @@ define Package/fwblack
   CATEGORY:=Network
   SUBMENU:=Firewall
   TITLE:=DNS-based nftables blocklist daemon
+  URL:=https://github.com/EdgeBites/fw-black-luci
   DEPENDS:=+nftables +firewall4
   PKGARCH:=all
 endef
@@ -113,6 +108,7 @@ define Package/luci-app-fwblack
   CATEGORY:=LuCI
   SUBMENU:=3. Applications
   TITLE:=LuCI support for fwblack
+  URL:=https://github.com/EdgeBites/fw-black-luci
   DEPENDS:=+fwblack +luci-base +rpcd-mod-ucode
   PKGARCH:=all
 endef

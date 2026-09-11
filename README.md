@@ -1,5 +1,10 @@
 # fw.black — automatic DNS-based firewall blocklist (nftables)
 
+[![ci](https://github.com/EdgeBites/fw-black-luci/actions/workflows/ci.yml/badge.svg)](https://github.com/EdgeBites/fw-black-luci/actions/workflows/ci.yml)
+
+Maintained by [EdgeBites.com](https://EdgeBites.com) — <info@edgebites.com>.
+Source: [github.com/EdgeBites/fw-black-luci](https://github.com/EdgeBites/fw-black-luci).
+
 Blocks unwanted domains/trackers at the router by watching active
 connections, reverse-resolving them, and dropping TCP 80/443 toward matches.
 Runs on OpenWrt 22+ (firewall4/nftables), IPv4 + IPv6, BusyBox `sh`-clean.
@@ -104,7 +109,7 @@ under `files/`). It builds two `.ipk`s: `fwblack` (daemon + UCI + nft) and
 
 ```sh
 # Inside an OpenWrt buildroot / SDK (24.10+):
-cp -r /path/to/fw.black.openwrt package/fwblack
+git clone https://github.com/EdgeBites/fw-black-luci.git package/fwblack
 ./scripts/feeds update -a && ./scripts/feeds install -a
 make menuconfig   # select Network -> Firewall -> fwblack, LuCI -> Applications -> luci-app-fwblack
 make package/fwblack/compile V=s
@@ -258,10 +263,18 @@ Release checklist (keep in sync, then see CI badge in `.github/workflows`):
 
 Submitting upstream:
 
-1. Fill the `TODO(maintainer)` items in `Makefile` (real `Name <email>`,
-   upstream `URL:=`).
+1. Upstream is `https://github.com/EdgeBites/fw-black-luci`
+   (maintainer `EdgeBites.com <info@edgebites.com>`).
 2. Copy this directory to `net/fwblack/` in a fork of
    `openwrt/packages`.
 3. Open a PR titled `net/fwblack: add new package` with `Signed-off-by`
    (real name + real email, see
    [Sign your work](https://openwrt.org/submitting-patches#sign_your_work)).
+
+## Support
+
+- Homepage: [https://EdgeBites.com](https://EdgeBites.com)
+- Contact: <info@edgebites.com>
+- Issues: [github.com/EdgeBites/fw-black-luci/issues](https://github.com/EdgeBites/fw-black-luci/issues)
+- Security: see [SECURITY.md](SECURITY.md) — please email
+  <info@edgebites.com> instead of opening a public issue.
