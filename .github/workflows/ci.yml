@@ -14,7 +14,6 @@ jobs:
       - name: shellcheck (busybox sh)
         run: |
           shellcheck -S warning -s sh \
-            fw-black.sh ips.sh resips.sh fwblack.init \
             files/usr/sbin/fw-black \
             files/usr/libexec/fwblack/ips.sh \
             files/usr/libexec/fwblack/resips.sh \
@@ -23,8 +22,7 @@ jobs:
             test.sh test-version.sh pre-test.sh tests/ci-smoke.sh
       - name: sh syntax + Makefile stub parse
         run: |
-          for f in fw-black.sh ips.sh resips.sh fwblack.init \
-              files/usr/sbin/fw-black \
+          for f in files/usr/sbin/fw-black \
               files/usr/libexec/fwblack/ips.sh \
               files/usr/libexec/fwblack/resips.sh \
               files/etc/init.d/fwblack \
@@ -44,9 +42,9 @@ jobs:
           mv="$(sed -n 's/^PKG_VERSION:=//p' Makefile | head -1)"
           rv="$(tr -d ' \t\r\n' < VERSION)"
           test -n "$mv" && test "$mv" = "$rv" || { echo "PKG_VERSION ($mv) != VERSION ($rv)"; exit 1; }
-          grep -h "VERSION='" fw-black.sh ips.sh resips.sh files/usr/sbin/fw-black files/usr/libexec/fwblack/ips.sh files/usr/libexec/fwblack/resips.sh | sort -u
-          test "$(grep -h "VERSION='" fw-black.sh ips.sh resips.sh files/usr/sbin/fw-black files/usr/libexec/fwblack/ips.sh files/usr/libexec/fwblack/resips.sh | sort -u | wc -l)" = 1 || { echo "script VERSION lines diverge"; exit 1; }
-          test "$(grep -h "VERSION='" fw-black.sh | grep -o '[0-9][0-9.]*')" = "$mv" || { echo "script VERSION != PKG_VERSION"; exit 1; }
+          grep -h "VERSION='" files/usr/sbin/fw-black files/usr/libexec/fwblack/ips.sh files/usr/libexec/fwblack/resips.sh | sort -u
+          test "$(grep -h "VERSION='" files/usr/sbin/fw-black files/usr/libexec/fwblack/ips.sh files/usr/libexec/fwblack/resips.sh | sort -u | wc -l)" = 1 || { echo "script VERSION lines diverge"; exit 1; }
+          test "$(grep -h "VERSION='" files/usr/sbin/fw-black | grep -o '[0-9][0-9.]*')" = "$mv" || { echo "script VERSION != PKG_VERSION"; exit 1; }
           if grep -rn --exclude-dir=.git -E $'\r' .; then echo "CRLF found"; exit 1; fi
           if grep -rn 'grep -q' test.sh test-version.sh; then echo "grep -q forbidden in CI test scripts"; exit 1; fi
           if grep -rn 'TODO' Makefile | grep -v 'TODO(maintainer)' | grep -v 'PKG_MAINTAINER:=TODO'; then echo "unexpected TODO"; exit 1; fi

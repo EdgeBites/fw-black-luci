@@ -12,20 +12,20 @@ Tested on OpenWrt 24.10.8 rootfs in Docker.
 
 ## How it works
 
-Loop in `fw-black.sh` (default every `INTERVAL=300` s):
+Loop in `files/usr/sbin/fw-black` (default every `INTERVAL=300` s):
 
-1. `ips.sh` extracts unique IPs from `/proc/net/nf_conntrack`
+1. `files/usr/libexec/fwblack/ips.sh` extracts unique IPs from `/proc/net/nf_conntrack`
    (falls back to `/proc/net/ip_conntrack`), validates octets, dedupes.
-2. `resips.sh` reads that list (`/tmp/ips`), skips LAN/loopback/link-local,
+2. `files/usr/libexec/fwblack/resips.sh` reads that list (`/tmp/ips`), skips LAN/loopback/link-local,
    runs `nslookup` per public IP, and appends the IP to `/tmp/blacklist.ips`
-   when the PTR hostname literally contains any entry from `blocklist.cfg`.
-3. `fw-black.sh` adds each IP in `/tmp/blacklist.ips` to an nftables set.
+   when the PTR hostname literally contains any entry from `files/etc/fwblack/blocklist.cfg`.
+3. `files/usr/sbin/fw-black` adds each IP in `/tmp/blacklist.ips` to an nftables set.
    One filter rule per family drops matching forwards.
 
 Filtering is nftables set-based, not rule-per-IP:
 
 - Table `inet fwblack` (own table, so `fw4 reload` never wipes it —
-  see `fwblack.nft`), sets `blacklist_v4` (`ipv4_addr`) and
+  see `files/usr/share/nftables.d/ruleset-post/fwblack.nft`), sets `blacklist_v4` (`ipv4_addr`) and
   `blacklist_v6` (`ipv6_addr`), chain `forward_black`
   (`type filter hook forward priority filter; policy accept`):
   `tcp dport { 80, 443 } ip daddr @blacklist_v4 counter drop` and the
@@ -36,16 +36,16 @@ Filtering is nftables set-based, not rule-per-IP:
 - Matching is literal substring (`case *"$entry"*`), not regex, so dots
   in domains are safe. Appends are exact-line deduped (`grep -Fxq`).
 
-Files:
+Files (installed paths; sources live under `files/` in this repo):
 
 | File | Purpose |
 | --- | --- |
-| `fw-black.sh` | Daemon loop, nftables setup, set inserts |
-| `fwblack.nft` | Declarative ruleset for fw4 auto-include |
-| `fwblack.init` | procd service definition |
-| `ips.sh` | Conntrack → unique IP list |
-| `resips.sh` | IP → PTR → blocklist match → append |
-| `blocklist.cfg` | One domain fragment per line (literal substring match), `#` comments, blank lines ignored |
+| `files/usr/sbin/fw-black` | Daemon loop, nftables setup, set inserts |
+| `files/usr/share/nftables.d/ruleset-post/fwblack.nft` | Declarative ruleset for fw4 auto-include |
+| `files/etc/init.d/fwblack` | procd service definition |
+| `files/usr/libexec/fwblack/ips.sh` | Conntrack → unique IP list |
+| `files/usr/libexec/fwblack/resips.sh` | IP → PTR → blocklist match → append |
+| `files/etc/fwblack/blocklist.cfg` | One domain fragment per line (literal substring match), `#` comments, blank lines ignored |
 
 Limitations: TCP 80/443 in `FORWARD` only (no UDP/DoH, no INPUT/OUTPUT);
 entries never expire (remove via `nft delete element …`); depends on
@@ -154,18 +154,20 @@ Legacy `/etc/fw.black/*` installs are auto-migrated on first install
 over the packaged default (saved as `blocklist.cfg.ppkg-default`), guarded by
 a one-shot marker so later upgrades never clobber user edits.
 
-## Install (manual, no buildroot)
+## Install (manual, no buildroot — from this repo's `files/`)
 
 ```sh
-# 1. Copy files to the router
-scp fw-black.sh ips.sh resips.sh blocklist.cfg fwblack.nft root@router:/etc/fw.black/
-ssh root@router 'chmod +x /etc/fw.black/fw-black.sh /etc/fw.black/ips.sh /etc/fw.black/resips.sh'
+# 1. Copy package files to the router (paths match the .ipk layout)
+scp files/usr/sbin/fw-black files/usr/libexec/fwblack/ips.sh files/usr/libexec/fwblack/resips.sh root@router:/tmp/
+scp files/etc/fwblack/blocklist.cfg root@router:/tmp/blocklist.cfg
+scp files/usr/share/nftables.d/ruleset-post/fwblack.nft root@router:/tmp/fwblack.nft
+ssh root@router 'mkdir -p /usr/libexec/fwblack /etc/fwblack && mv /tmp/fw-black /usr/sbin/fw-black && mv /tmp/ips.sh /tmp/resips.sh /usr/libexec/fwblack/ && mv /tmp/blocklist.cfg /etc/fwblack/blocklist.cfg && chmod +x /usr/sbin/fw-black /usr/libexec/fwblack/ips.sh /usr/libexec/fwblack/resips.sh'
 
 # 2. Make the ruleset survive fw4 reloads/reboots
-ssh root@router 'mkdir -p /etc/nftables.d/ruleset-post && cp /etc/fw.black/fwblack.nft /etc/nftables.d/ruleset-post/fwblack.nft && fw4 reload'
+ssh root@router 'mkdir -p /etc/nftables.d/ruleset-post && mv /tmp/fwblack.nft /etc/nftables.d/ruleset-post/fwblack.nft && fw4 reload'
 
 # 3. Edit the domains you want blocked
-ssh root@router 'vi /etc/fw.black/blocklist.cfg'
+ssh root@router 'vi /etc/fwblack/blocklist.cfg'
 ```
 
 ## Run as a service (procd, auto-start on boot)
@@ -179,26 +181,23 @@ nft list table inet fwblack; nft list set inet fwblack blacklist_v4; nft list se
 uci set fwblack.global.interval='120'; uci commit fwblack; service fwblack reload
 ```
 
-Manual install (legacy `fwblack.init`):
+Manual install (from `files/etc/init.d/fwblack`):
 
 ```sh
-scp fwblack.init root@router:/etc/init.d/fwblack
+scp files/etc/init.d/fwblack root@router:/etc/init.d/fwblack
 ssh root@router 'chmod +x /etc/init.d/fwblack'
 ssh root@router 'service fwblack enable && service fwblack start'
 ssh root@router 'service fwblack status; logread -e fwblack | tail -20'
 ssh root@router 'nft list table inet fwblack; nft list set inet fwblack blacklist_v4; nft list set inet fwblack blacklist_v6'
 
-# Optional: change the scan interval (seconds, default 300) — add an
-# env line inside start_service() in /etc/init.d/fwblack, before
-# procd_close_instance, then restart:
-#   procd_set_param env INTERVAL=120
-ssh root@router 'vi /etc/init.d/fwblack && service fwblack restart'
+# Optional: change the scan interval via UCI (default 300):
+ssh root@router 'uci set fwblack.global.interval=120; uci commit fwblack; service fwblack reload'
 ```
 
 Manual run (no service):
 
 ```sh
-ssh root@router '/etc/fw.black/fw-black.sh &'
+ssh root@router '/usr/sbin/fw-black &'
 ```
 
 Uninstall:
@@ -256,7 +255,6 @@ so matches stay visible in CI logs.
 Release checklist (keep in sync, then see CI badge in `.github/workflows`):
 
 - `PKG_VERSION` (`Makefile`) == `VERSION` (repo root) == `VERSION='…'` in
-  `fw-black.sh`, `ips.sh`, `resips.sh`,
   `files/usr/sbin/fw-black`, `files/usr/libexec/fwblack/*.sh`.
 - Version bump → reset `PKG_RELEASE:=1`; package-only change →
   increment `PKG_RELEASE`.
@@ -264,7 +262,7 @@ Release checklist (keep in sync, then see CI badge in `.github/workflows`):
 Submitting upstream:
 
 1. Upstream is `https://github.com/EdgeBites/fw-black-luci`
-   (maintainer `EdgeBites.com <info@edgebites.com>`).
+   (maintainer `Calin Vlad <calin@edgebites.com>`).
 2. Copy this directory to `net/fwblack/` in a fork of
    `openwrt/packages`.
 3. Open a PR titled `net/fwblack: add new package` with `Signed-off-by`

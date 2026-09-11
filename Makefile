@@ -1,10 +1,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=fwblack
-PKG_VERSION:=1.0.0
+PKG_VERSION:=1.0.1
 PKG_RELEASE:=1
 
-PKG_MAINTAINER:=EdgeBites.com <info@edgebites.com>
+PKG_SOURCE:=fw-black-luci-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://codeload.github.com/EdgeBites/fw-black-luci/tar.gz/v$(PKG_VERSION)?
+PKG_HASH:=skip
+
+PKG_MAINTAINER:=Calin Vlad <calin@edgebites.com>
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE
 
@@ -44,29 +48,29 @@ endef
 
 define Package/fwblack/install
 	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) ./files/usr/sbin/fw-black $(1)/usr/sbin/fw-black
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/usr/sbin/fw-black $(1)/usr/sbin/fw-black
 
 	$(INSTALL_DIR) $(1)/usr/libexec/fwblack
-	$(INSTALL_BIN) ./files/usr/libexec/fwblack/ips.sh $(1)/usr/libexec/fwblack/ips.sh
-	$(INSTALL_BIN) ./files/usr/libexec/fwblack/resips.sh $(1)/usr/libexec/fwblack/resips.sh
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/usr/libexec/fwblack/ips.sh $(1)/usr/libexec/fwblack/ips.sh
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/usr/libexec/fwblack/resips.sh $(1)/usr/libexec/fwblack/resips.sh
 
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/etc/init.d/fwblack $(1)/etc/init.d/fwblack
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/etc/init.d/fwblack $(1)/etc/init.d/fwblack
 
 	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_CONF) ./files/etc/config/fwblack $(1)/etc/config/fwblack
+	$(INSTALL_CONF) $(PKG_BUILD_DIR)/files/etc/config/fwblack $(1)/etc/config/fwblack
 
 	$(INSTALL_DIR) $(1)/etc/fwblack
-	$(INSTALL_CONF) ./files/etc/fwblack/blocklist.cfg $(1)/etc/fwblack/blocklist.cfg
+	$(INSTALL_CONF) $(PKG_BUILD_DIR)/files/etc/fwblack/blocklist.cfg $(1)/etc/fwblack/blocklist.cfg
 
 	$(INSTALL_DIR) $(1)/usr/share/nftables.d/ruleset-post
-	$(INSTALL_DATA) ./files/usr/share/nftables.d/ruleset-post/fwblack.nft $(1)/usr/share/nftables.d/ruleset-post/fwblack.nft
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/usr/share/nftables.d/ruleset-post/fwblack.nft $(1)/usr/share/nftables.d/ruleset-post/fwblack.nft
 
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_BIN) ./files/etc/uci-defaults/99-fwblack $(1)/etc/uci-defaults/99-fwblack
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/files/etc/uci-defaults/99-fwblack $(1)/etc/uci-defaults/99-fwblack
 
 	$(INSTALL_DIR) $(1)/etc/sysupgrade.conf.d
-	$(INSTALL_DATA) ./files/etc/sysupgrade.conf.d/fwblack $(1)/etc/sysupgrade.conf.d/fwblack
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/etc/sysupgrade.conf.d/fwblack $(1)/etc/sysupgrade.conf.d/fwblack
 endef
 
 define Package/fwblack/postinst
@@ -120,16 +124,16 @@ endef
 
 define Package/luci-app-fwblack/install
 	$(INSTALL_DIR) $(1)/www/luci-static/resources/view/fwblack
-	$(INSTALL_DATA) ./files/www/luci-static/resources/view/fwblack/overview.js $(1)/www/luci-static/resources/view/fwblack/overview.js
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/www/luci-static/resources/view/fwblack/overview.js $(1)/www/luci-static/resources/view/fwblack/overview.js
 
 	$(INSTALL_DIR) $(1)/usr/share/luci/menu.d
-	$(INSTALL_DATA) ./files/usr/share/luci/menu.d/luci-app-fwblack.json $(1)/usr/share/luci/menu.d/luci-app-fwblack.json
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/usr/share/luci/menu.d/luci-app-fwblack.json $(1)/usr/share/luci/menu.d/luci-app-fwblack.json
 
 	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d
-	$(INSTALL_DATA) ./files/usr/share/rpcd/acl.d/luci-app-fwblack.json $(1)/usr/share/rpcd/acl.d/luci-app-fwblack.json
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/usr/share/rpcd/acl.d/luci-app-fwblack.json $(1)/usr/share/rpcd/acl.d/luci-app-fwblack.json
 
 	$(INSTALL_DIR) $(1)/usr/share/rpcd/ucode
-	$(INSTALL_DATA) ./files/usr/share/rpcd/ucode/fwblack.uc $(1)/usr/share/rpcd/ucode/fwblack.uc
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/files/usr/share/rpcd/ucode/fwblack.uc $(1)/usr/share/rpcd/ucode/fwblack.uc
 endef
 
 define Package/luci-app-fwblack/postinst

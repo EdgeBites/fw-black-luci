@@ -5,8 +5,9 @@
 #   docker run --rm --privileged -v "$PWD:/src:ro" \
 #     openwrt/rootfs:x86_64-24.10.8 sh /src/tests/ci-smoke.sh
 #
-# Derives the install file list from Makefile './files/...' references so the
-# test cannot drift from packaging. Fails (>0 FAIL lines) on any regression.
+# Derives the install file list from Makefile 'files/...' references so the
+# test cannot drift from packaging (handles both ./files/ and
+# $(PKG_BUILD_DIR)/files/ forms). Fails (>0 FAIL lines) on any regression.
 FAILS=0
 pass() { echo "PASS: $1"; }
 fail() { echo "FAIL: $1"; FAILS=$((FAILS+1)); }
@@ -16,7 +17,7 @@ echo "### install files listed in Makefile"
 mkdir -p /tmp/smoke-files
 tar -C "$SRC/files" -cf /tmp/smoke-files.tar . && tar -xf /tmp/smoke-files.tar -C /
 chmod +x /usr/sbin/fw-black /usr/libexec/fwblack/ips.sh /usr/libexec/fwblack/resips.sh /etc/init.d/fwblack /etc/uci-defaults/99-fwblack
-for f in $(grep -o '\./files/[^ "]*' "$SRC/Makefile" | sed 's|^\./files|/|' | sort -u); do
+for f in $(grep -o 'files/[^ "]*' "$SRC/Makefile" | sed 's|^files|/|' | sort -u); do
 	[ -e "$f" ] && pass "installed $f" || fail "installed $f"
 done
 
