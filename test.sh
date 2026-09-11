@@ -2,7 +2,7 @@
 # test.sh - functional CI test for fwblack packages (openwrt/packages CI).
 # Runs on the installed system. $1 = package name, $2 = upstream version
 # (PKG_NAME/PKG_VERSION are also provided as environment variables).
-# NOTE: no 'grep -q' here - matches stay visible in CI logs (review rules).
+# NOTE: plain grep without -q here - matches stay visible in CI logs.
 name="${1:-$PKG_NAME}"
 version="${2:-$PKG_VERSION}"
 

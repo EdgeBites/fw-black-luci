@@ -1,4 +1,11 @@
 #!/bin/sh
-# pre-test.sh - dependencies for the CI runtime test that are not part of
-# the package itself (runs before the package is installed).
-apk add nftables
+# pre-test.sh - ensure nftables tooling for the CI runtime test.
+# (Our fwblack DEPENDS already pulls it via firewall4; this covers
+# minimal CI images. Works with both apk and opkg based systems.)
+if ! command -v nft >/dev/null 2>&1; then
+	if command -v apk >/dev/null 2>&1; then
+		apk add nftables
+	elif command -v opkg >/dev/null 2>&1; then
+		opkg update && opkg install nftables
+	fi
+fi

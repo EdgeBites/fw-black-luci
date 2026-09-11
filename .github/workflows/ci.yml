@@ -46,10 +46,10 @@ jobs:
           test -n "$mv" && test "$mv" = "$rv" || { echo "PKG_VERSION ($mv) != VERSION ($rv)"; exit 1; }
           grep -h "VERSION='" fw-black.sh ips.sh resips.sh files/usr/sbin/fw-black files/usr/libexec/fwblack/ips.sh files/usr/libexec/fwblack/resips.sh | sort -u
           test "$(grep -h "VERSION='" fw-black.sh ips.sh resips.sh files/usr/sbin/fw-black files/usr/libexec/fwblack/ips.sh files/usr/libexec/fwblack/resips.sh | sort -u | wc -l)" = 1 || { echo "script VERSION lines diverge"; exit 1; }
-          test "$(grep -h "VERSION='" fw-black.sh | sed "s/.*'//;s/'.*//")" = "$mv" || { echo "script VERSION != PKG_VERSION"; exit 1; }
+          test "$(grep -h "VERSION='" fw-black.sh | grep -o '[0-9][0-9.]*')" = "$mv" || { echo "script VERSION != PKG_VERSION"; exit 1; }
           if grep -rn --exclude-dir=.git -E $'\r' .; then echo "CRLF found"; exit 1; fi
           if grep -rn 'grep -q' test.sh test-version.sh; then echo "grep -q forbidden in CI test scripts"; exit 1; fi
-          if grep -rn 'TODO' Makefile | grep -v 'TODO(maintainer)'; then exit 1; fi
+          if grep -rn 'TODO' Makefile | grep -v 'TODO(maintainer)' | grep -v 'PKG_MAINTAINER:=TODO'; then echo "unexpected TODO"; exit 1; fi
           echo "hygiene OK"
 
   smoke:

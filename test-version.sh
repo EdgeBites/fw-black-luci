@@ -1,7 +1,7 @@
 #!/bin/sh
 # test-version.sh - version check override for fwblack packages.
 # The generic CI version check is skipped when this file exists.
-# NOTE: no 'grep -q' here - matches stay visible in CI logs (review rules).
+# NOTE: plain grep without -q here - matches stay visible in CI logs.
 case "$PKG_NAME" in
 fwblack)
 	/usr/sbin/fw-black --version | grep -F "$PKG_VERSION"
