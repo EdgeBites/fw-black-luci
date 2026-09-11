@@ -1,0 +1,13 @@
+# OpenWrt build outputs (when dropped into a buildroot/feed)
+*.ipk
+*.apk
+bin/
+build_dir/
+staging_dir/
+tmp/
+logs/
+# Editor / OS noise
+.vscode/
+.idea/
+*~
+.DS_Store

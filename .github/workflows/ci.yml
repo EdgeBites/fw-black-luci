@@ -1,0 +1,63 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+      - name: shellcheck (busybox sh)
+        run: |
+          shellcheck -S warning -s sh \
+            fw-black.sh ips.sh resips.sh fwblack.init \
+            files/usr/sbin/fw-black \
+            files/usr/libexec/fwblack/ips.sh \
+            files/usr/libexec/fwblack/resips.sh \
+            files/etc/init.d/fwblack \
+            files/etc/uci-defaults/99-fwblack \
+            test.sh test-version.sh pre-test.sh tests/ci-smoke.sh
+      - name: sh syntax + Makefile stub parse
+        run: |
+          for f in fw-black.sh ips.sh resips.sh fwblack.init \
+              files/usr/sbin/fw-black \
+              files/usr/libexec/fwblack/ips.sh \
+              files/usr/libexec/fwblack/resips.sh \
+              files/etc/init.d/fwblack \
+              files/etc/uci-defaults/99-fwblack \
+              test.sh test-version.sh pre-test.sh tests/ci-smoke.sh; do
+            sh -n "$f" || exit 1
+          done
+          printf 'TOPDIR:=/tmp/mkstub\nINCLUDE_DIR:=/tmp/mkstub\n' > /tmp/rules.mk
+          mkdir -p /tmp/mkstub
+          mv /tmp/rules.mk /tmp/mkstub/rules.mk
+          printf 'define BuildPackage\n$$(info pkg [$(1)])\nendef\n' > /tmp/mkstub/package.mk
+          make -f Makefile -n TOPDIR=/tmp/mkstub INCLUDE_DIR=/tmp/mkstub
+      - name: JSON + VERSION consistency + hygiene
+        run: |
+          python3 -m json.tool files/usr/share/luci/menu.d/luci-app-fwblack.json > /dev/null
+          python3 -m json.tool files/usr/share/rpcd/acl.d/luci-app-fwblack.json > /dev/null
+          mv="$(sed -n 's/^PKG_VERSION:=//p' Makefile | head -1)"
+          rv="$(tr -d ' \t\r\n' < VERSION)"
+          test -n "$mv" && test "$mv" = "$rv" || { echo "PKG_VERSION ($mv) != VERSION ($rv)"; exit 1; }
+          grep -h "VERSION='" fw-black.sh ips.sh resips.sh files/usr/sbin/fw-black files/usr/libexec/fwblack/ips.sh files/usr/libexec/fwblack/resips.sh | sort -u
+          test "$(grep -h "VERSION='" fw-black.sh ips.sh resips.sh files/usr/sbin/fw-black files/usr/libexec/fwblack/ips.sh files/usr/libexec/fwblack/resips.sh | sort -u | wc -l)" = 1 || { echo "script VERSION lines diverge"; exit 1; }
+          test "$(grep -h "VERSION='" fw-black.sh | sed "s/.*'//;s/'.*//")" = "$mv" || { echo "script VERSION != PKG_VERSION"; exit 1; }
+          if grep -rn --exclude-dir=.git -E $'\r' .; then echo "CRLF found"; exit 1; fi
+          if grep -rn 'grep -q' test.sh test-version.sh; then echo "grep -q forbidden in CI test scripts"; exit 1; fi
+          if grep -rn 'TODO' Makefile | grep -v 'TODO(maintainer)'; then exit 1; fi
+          echo "hygiene OK"
+
+  smoke:
+    runs-on: ubuntu-latest
+    needs: static
+    steps:
+      - uses: actions/checkout@v4
+      - name: Smoke test in OpenWrt container
+        run: |
+          docker run --rm --privileged -v "$PWD:/src:ro" \
+            openwrt/rootfs:x86_64-24.10.8 sh /src/tests/ci-smoke.sh
