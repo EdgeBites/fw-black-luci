@@ -6,7 +6,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE:=fw-black-luci-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/EdgeBites/fw-black-luci/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=skip
+PKG_HASH:=2b011a8203de2ea10c955fbd817c5e3b9b222bbe8c04b3f5da211e036886abcd
 
 PKG_MAINTAINER:=Calin Vlad <calin@edgebites.com>
 PKG_LICENSE:=MIT
