@@ -16,7 +16,7 @@
 set -eu
 
 # Keep in sync with PKG_VERSION (Makefile) and VERSION (repo root).
-VERSION='1.0.1'
+VERSION='1.0.2'
 
 case "${1:-}" in
 	-V|--version)

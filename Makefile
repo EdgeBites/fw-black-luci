@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=fwblack
-PKG_VERSION:=1.0.1
+PKG_VERSION:=1.0.2
 PKG_RELEASE:=1
 
 PKG_SOURCE:=fw-black-luci-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/EdgeBites/fw-black-luci/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=dc26b78bae52bd1556d27914af5809ab933c1157f94001b2bf471e1ce3bb6860
+PKG_HASH:=skip
 
 PKG_MAINTAINER:=Calin Vlad <calin@edgebites.com>
 PKG_LICENSE:=MIT
