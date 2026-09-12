@@ -33,8 +33,8 @@ jobs:
           printf 'TOPDIR:=/tmp/mkstub\nINCLUDE_DIR:=/tmp/mkstub\n' > /tmp/rules.mk
           mkdir -p /tmp/mkstub
           mv /tmp/rules.mk /tmp/mkstub/rules.mk
-          printf 'define BuildPackage\n$$(info pkg [$(1)])\nendef\n' > /tmp/mkstub/package.mk
-          make -f Makefile -n TOPDIR=/tmp/mkstub INCLUDE_DIR=/tmp/mkstub
+          printf 'define BuildPackage\n$$(info pkg [$(1)])\nTarget-$(1):\n\t@true\nendef\n' > /tmp/mkstub/package.mk
+          make -f Makefile -n TOPDIR=/tmp/mkstub INCLUDE_DIR=/tmp/mkstub Target-fwblack Target-luci-app-fwblack
       - name: JSON + VERSION consistency + hygiene
         run: |
           python3 -m json.tool files/usr/share/luci/menu.d/luci-app-fwblack.json > /dev/null

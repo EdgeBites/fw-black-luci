@@ -1,4 +1,6 @@
 #!/bin/sh /etc/rc.common
+# shellcheck disable=SC2034 # USE_PROCD/START/STOP consumed by OpenWrt rc.common.
+# shellcheck disable=SC3043 # OpenWrt BusyBox ash supports 'local' in functions.
 # fwblack - procd init script for OpenWrt (UCI-driven).
 #
 # Config: /etc/config/fwblack (see files/etc/config/fwblack)

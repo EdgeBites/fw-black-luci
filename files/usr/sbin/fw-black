@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC3028 # BusyBox ash provides RANDOM (guarded for POSIX sh).
 # fw.black - DNS-based blocklist daemon (nftables edition, OpenWrt package).
 #
 # Loops: collect active IPs (ips.sh) -> resolve+match against blocklist
@@ -47,7 +48,7 @@ USAGE
 		;;
 esac
 
-SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 
 # Resolve helper/base dirs. Package layout:
 #   daemon:  /usr/sbin/fw-black
